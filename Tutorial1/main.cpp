@@ -10,17 +10,17 @@ constexpr int BOARD_MARGIN = 10;
 constexpr COLORREF CLR_WINDOW_BG = RGB(250, 247, 238);
 constexpr COLORREF CLR_TILE_BG = RGB(250, 192, 174);
 
-static HBRUSH g_windowBrush = nullptr;
-static HBRUSH g_tileBrush = nullptr;
+HBRUSH g_windowBrush = nullptr;
+HBRUSH g_tileBrush = nullptr;
 
 HWND g_tiles[BOARD_DIM * BOARD_DIM]{};
 
 int g_windowCount = 0;
 
-// --- Stage 3 globals ---
-static HWND g_hwndMain = nullptr;
-static HWND g_hwndSecond = nullptr;
-static bool g_syncing = false;
+
+HWND g_hwndMain = nullptr;
+HWND g_hwndSecond = nullptr;
+bool g_syncing = false;
 
 int ClientWidth()
 {
@@ -58,7 +58,7 @@ void SetWindowIconsFromIco(HWND hwnd, const wchar_t* icoPath)
     if (hSm)  SendMessageW(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hSm);
 }
 
-// --- Stage 3 helper: mirror movement ---
+//mirror moves
 static void MirrorOtherWindow(HWND movedHwnd)
 {
     if (g_syncing) return;
@@ -73,21 +73,20 @@ static void MirrorOtherWindow(HWND movedHwnd)
     const int w = rMoved.right - rMoved.left;
     const int h = rMoved.bottom - rMoved.top;
 
-    // Center of moved window (in screen coords)
+    //center of moved window
     const int cx = rMoved.left + w / 2;
     const int cy = rMoved.top + h / 2;
 
-    // Screen center
     const int screenW = GetSystemMetrics(SM_CXSCREEN);
     const int screenH = GetSystemMetrics(SM_CYSCREEN);
     const int scx = screenW / 2;
     const int scy = screenH / 2;
 
-    // Mirror around screen center: C2 = 2S - C1
+    //mirror around screen center: C2 = 2S - C1
     const int otherCx = 2 * scx - cx;
     const int otherCy = 2 * scy - cy;
 
-    // Convert center back to top-left
+    //convert center back to top-left
     const int otherX = otherCx - w / 2;
     const int otherY = otherCy - h / 2;
 
@@ -130,18 +129,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 1;
     }
 
-    // --- Stage 3: sync moves ---
+    //moves
     case WM_WINDOWPOSCHANGED:
     {
-        // lParam points to WINDOWPOS, but easiest is: if position changed, mirror
         const WINDOWPOS* wp = reinterpret_cast<const WINDOWPOS*>(lParam);
         if (wp && (wp->flags & SWP_NOMOVE) == 0)
         {
-            // Only mirror moves of our two main windows, not child STATICs
             if (hwnd == g_hwndMain || hwnd == g_hwndSecond)
                 MirrorOtherWindow(hwnd);
         }
-        break; // still call DefWindowProc afterwards
+        break; 
     }
 
     case WM_DESTROY:
@@ -196,10 +193,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
     if (!g_hwndMain) return 0;
     SetWindowIconsFromIco(g_hwndMain, L"2048_icon.ico");
 
-    // Popup style: caption only (no icon, no close button)
+    //only caption
     DWORD popupStyle = WS_OVERLAPPED | WS_CAPTION;
 
-    // Important: recalc size for popupStyle too (caption thickness differs slightly)
     RECT rPopup{ 0, 0, ClientWidth(), ClientHeight() };
     AdjustWindowRectEx(&rPopup, popupStyle, FALSE, 0);
     const int popupW = rPopup.right - rPopup.left;
@@ -212,7 +208,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
         popupStyle,
         100, 100,
         popupW, popupH,
-        g_hwndMain,     // owner => no taskbar entry
+        g_hwndMain,     //owner
         nullptr,
         hInstance,
         nullptr
@@ -223,7 +219,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 
     if (g_hwndSecond)
     {
-        // Show without activating so focus stays on main
+        //shows without activating so focus stays on main
         ShowWindow(g_hwndSecond, SW_SHOWNA);
         UpdateWindow(g_hwndSecond);
     }
