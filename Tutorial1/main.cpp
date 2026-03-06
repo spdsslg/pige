@@ -1,56 +1,48 @@
 #define UNICODE
 #define _UNICODE
 #include <windows.h>
-#include <array>
 
-static constexpr int TILE_SIZE = 60;
-static constexpr int TILE_GAP = 10;   // gap between tiles
-static constexpr int BOARD_DIM = 4;
-static constexpr int BOARD_MARGIN = 10;  // around the grid inside the window client area
+constexpr int TILE_SIZE = 60;
+constexpr int TILE_GAP = 10;
+constexpr int BOARD_DIM = 4;
+constexpr int BOARD_MARGIN = 10;
 
-
-// Colors from spec
-static constexpr COLORREF CLR_WINDOW_BG = RGB(250, 247, 238);
-static constexpr COLORREF CLR_TILE_BG = RGB(250, 192, 174);
+constexpr COLORREF CLR_WINDOW_BG = RGB(250, 247, 238);
+constexpr COLORREF CLR_TILE_BG = RGB(250, 192, 174);
 
 static HBRUSH g_windowBrush = nullptr;
 static HBRUSH g_tileBrush = nullptr;
 
-HWND g_tiles[BOARD_DIM*BOARD_DIM]{};
+HWND g_tiles[BOARD_DIM * BOARD_DIM]{};
 
-static int g_windowCount = 0;
+int g_windowCount = 0;
 
-static int ClientWidth()
+// --- Stage 3 globals ---
+static HWND g_hwndMain = nullptr;
+static HWND g_hwndSecond = nullptr;
+static bool g_syncing = false;
+
+int ClientWidth()
 {
-    // Margin + 4 tiles + 3 gaps + margin
     return BOARD_MARGIN + BOARD_DIM * TILE_SIZE + (BOARD_DIM - 1) * TILE_GAP + BOARD_MARGIN;
 }
+int ClientHeight() { return ClientWidth(); }
 
-static int ClientHeight()
+void CreateTiles(HWND hwnd)
 {
-    return ClientWidth(); // square board
-}
-
-static void CreateTiles(HWND hwnd)
-{
-    // Create 16 STATIC controls, positioned in a 4x4 grid
     for (int r = 0; r < BOARD_DIM; ++r)
     {
         for (int c = 0; c < BOARD_DIM; ++c)
         {
             const int x = BOARD_MARGIN + c * (TILE_SIZE + TILE_GAP);
             const int y = BOARD_MARGIN + r * (TILE_SIZE + TILE_GAP);
-
             const int idx = r * BOARD_DIM + c;
 
             g_tiles[idx] = CreateWindowExW(
-                0,
-                L"STATIC",
-                L"", // later we can put numbers here
+                0, L"STATIC", L"",
                 WS_CHILD | WS_VISIBLE | SS_CENTER | SS_CENTERIMAGE,
                 x, y, TILE_SIZE, TILE_SIZE,
-                hwnd,
-                nullptr,
+                hwnd, nullptr,
                 (HINSTANCE)GetWindowLongPtrW(hwnd, GWLP_HINSTANCE),
                 nullptr
             );
@@ -58,17 +50,51 @@ static void CreateTiles(HWND hwnd)
     }
 }
 
-static void SetWindowIconsFromIco(HWND hwnd, const wchar_t* icoPath)
+void SetWindowIconsFromIco(HWND hwnd, const wchar_t* icoPath)
 {
-    // Load big + small icons from file (your 2048_icon.ico)
     HICON hBig = (HICON)LoadImageW(nullptr, icoPath, IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
     HICON hSm = (HICON)LoadImageW(nullptr, icoPath, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
-
     if (hBig) SendMessageW(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hBig);
     if (hSm)  SendMessageW(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hSm);
+}
 
-    // Note: we don't DestroyIcon here yet; Windows typically owns icons after WM_SETICON.
-    // We'll keep this simple for Stage 1.
+// --- Stage 3 helper: mirror movement ---
+static void MirrorOtherWindow(HWND movedHwnd)
+{
+    if (g_syncing) return;
+    if (!g_hwndMain || !g_hwndSecond) return;
+
+    HWND other = (movedHwnd == g_hwndMain) ? g_hwndSecond : g_hwndMain;
+    if (!other) return;
+
+    RECT rMoved{};
+    if (!GetWindowRect(movedHwnd, &rMoved)) return;
+
+    const int w = rMoved.right - rMoved.left;
+    const int h = rMoved.bottom - rMoved.top;
+
+    // Center of moved window (in screen coords)
+    const int cx = rMoved.left + w / 2;
+    const int cy = rMoved.top + h / 2;
+
+    // Screen center
+    const int screenW = GetSystemMetrics(SM_CXSCREEN);
+    const int screenH = GetSystemMetrics(SM_CYSCREEN);
+    const int scx = screenW / 2;
+    const int scy = screenH / 2;
+
+    // Mirror around screen center: C2 = 2S - C1
+    const int otherCx = 2 * scx - cx;
+    const int otherCy = 2 * scy - cy;
+
+    // Convert center back to top-left
+    const int otherX = otherCx - w / 2;
+    const int otherY = otherCy - h / 2;
+
+    g_syncing = true;
+    SetWindowPos(other, nullptr, otherX, otherY, 0, 0,
+        SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+    g_syncing = false;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -77,45 +103,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        g_windowCount++;
-        // Create brushes once window is created
+        ++g_windowCount;
+
         if (!g_windowBrush) g_windowBrush = CreateSolidBrush(CLR_WINDOW_BG);
         if (!g_tileBrush)   g_tileBrush = CreateSolidBrush(CLR_TILE_BG);
 
         CreateTiles(hwnd);
 
-        // Try to set icon from file in the same folder as exe:
-        SetWindowIconsFromIco(hwnd, L"2048_icon.ico");
         return 0;
     }
 
     case WM_CTLCOLORSTATIC:
     {
-        // This message lets us color STATIC controls without custom painting.
         HDC hdc = (HDC)wParam;
         SetBkColor(hdc, CLR_TILE_BG);
-
-        // If you later show text numbers, black is fine for now:
         SetTextColor(hdc, RGB(0, 0, 0));
-
-        // Return the brush used to paint the background of STATIC controls
         return (LRESULT)g_tileBrush;
     }
 
     case WM_ERASEBKGND:
     {
-        // Paint the background with our window brush to avoid default gray
         HDC hdc = (HDC)wParam;
         RECT rc;
         GetClientRect(hwnd, &rc);
         FillRect(hdc, &rc, g_windowBrush);
-        return 1; // we erased it
+        return 1;
+    }
+
+    // --- Stage 3: sync moves ---
+    case WM_WINDOWPOSCHANGED:
+    {
+        // lParam points to WINDOWPOS, but easiest is: if position changed, mirror
+        const WINDOWPOS* wp = reinterpret_cast<const WINDOWPOS*>(lParam);
+        if (wp && (wp->flags & SWP_NOMOVE) == 0)
+        {
+            // Only mirror moves of our two main windows, not child STATICs
+            if (hwnd == g_hwndMain || hwnd == g_hwndSecond)
+                MirrorOtherWindow(hwnd);
+        }
+        break; // still call DefWindowProc afterwards
     }
 
     case WM_DESTROY:
     {
         --g_windowCount;
-
         if (g_windowCount == 0)
         {
             if (g_tileBrush) { DeleteObject(g_tileBrush);   g_tileBrush = nullptr; }
@@ -138,62 +169,64 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-
-    // Background brush is handled by WM_ERASEBKGND, so we can leave this null.
-    // But it’s also ok to set it; we keep it null to avoid double painting.
     wc.hbrBackground = nullptr;
 
     if (!RegisterClassExW(&wc))
         return 0;
 
-    // We want a fixed-size window: no resizing, no maximize.
-    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+    DWORD mainStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
     DWORD exStyle = 0;
 
-    RECT r{ 0, 0, ClientWidth(), ClientHeight() };
-    AdjustWindowRectEx(&r, style, FALSE, exStyle);
+    RECT rMain{ 0, 0, ClientWidth(), ClientHeight() };
+    AdjustWindowRectEx(&rMain, mainStyle, FALSE, exStyle);
+    const int winW = rMain.right - rMain.left;
+    const int winH = rMain.bottom - rMain.top;
 
-    const int winW = r.right - r.left;
-    const int winH = r.bottom - r.top;
-
-    HWND hwndMain = CreateWindowExW(
+    g_hwndMain = CreateWindowExW(
         exStyle,
         CLASS_NAME,
         L"2048",
-        style,
+        mainStyle,
         CW_USEDEFAULT, CW_USEDEFAULT,
         winW, winH,
         nullptr, nullptr,
         hInstance,
         nullptr
     );
+    if (!g_hwndMain) return 0;
+    SetWindowIconsFromIco(g_hwndMain, L"2048_icon.ico");
 
-    if (!hwndMain) return 0;
+    // Popup style: caption only (no icon, no close button)
+    DWORD popupStyle = WS_OVERLAPPED | WS_CAPTION;
 
-    // Create the second window as an OWNED window of the first.
-    // Owned windows typically do NOT show in the taskbar.
-    HWND hwndSecond = CreateWindowExW(
-        0,              // if needed later: WS_EX_TOOLWINDOW
+    // Important: recalc size for popupStyle too (caption thickness differs slightly)
+    RECT rPopup{ 0, 0, ClientWidth(), ClientHeight() };
+    AdjustWindowRectEx(&rPopup, popupStyle, FALSE, 0);
+    const int popupW = rPopup.right - rPopup.left;
+    const int popupH = rPopup.bottom - rPopup.top;
+
+    g_hwndSecond = CreateWindowExW(
+        0,
         CLASS_NAME,
         L"2048",
-        WS_OVERLAPPED | WS_CAPTION ,
-        100, 100,       // you can choose a position; we'll refine later
-        winW, winH,
-        hwndMain,       // <-- OWNER (important! not parent-child, but "owner")
+        popupStyle,
+        100, 100,
+        popupW, popupH,
+        g_hwndMain,     // owner => no taskbar entry
         nullptr,
         hInstance,
         nullptr
     );
 
-    ShowWindow(hwndMain, nCmdShow);
-    UpdateWindow(hwndMain);
+    ShowWindow(g_hwndMain, nCmdShow);
+    UpdateWindow(g_hwndMain);
 
-    if (hwndSecond)
+    if (g_hwndSecond)
     {
-        ShowWindow(hwndSecond, nCmdShow);
-        UpdateWindow(hwndSecond);
+        // Show without activating so focus stays on main
+        ShowWindow(g_hwndSecond, SW_SHOWNA);
+        UpdateWindow(g_hwndSecond);
     }
-
 
     MSG msg{};
     while (GetMessageW(&msg, nullptr, 0, 0))
