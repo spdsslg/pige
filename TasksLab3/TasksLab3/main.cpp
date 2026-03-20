@@ -3,6 +3,7 @@
 
 
 HINSTANCE g_hInstance = NULL;
+HWND g_hAboutDlg = NULL;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK AboutDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -46,10 +47,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     while (GetMessageW(&msg, NULL, 0, 0))
     {
-        if (!TranslateAcceleratorW(hwnd, hAccel, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
+        if (g_hAboutDlg == NULL || !IsDialogMessageW(g_hAboutDlg, &msg)) {
+            if (!TranslateAcceleratorW(hwnd, hAccel, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
         }
     }
 
@@ -70,7 +73,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             break;
 
         case IDM_HELP_ABOUT:
-            DialogBoxW(g_hInstance, MAKEINTRESOURCEW(IDD_ABOUTBOX), hwnd, AboutDialogProc);
+            if (g_hAboutDlg == NULL) {
+                g_hAboutDlg = CreateDialogW(g_hInstance, MAKEINTRESOURCEW(IDD_ABOUTBOX), hwnd, AboutDialogProc);
+                ShowWindow(g_hAboutDlg, SW_SHOW);
+            }
+            else {
+                ShowWindow(g_hAboutDlg, SW_SHOW);
+                SetForegroundWindow(g_hAboutDlg);
+            }
             break;
         }
         return 0;
@@ -94,10 +104,13 @@ INT_PTR CALLBACK AboutDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         //close the dialog if the user clicks "OK" or the top right 'X'
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {
-            EndDialog(hwndDlg, LOWORD(wParam));
+            ShowWindow(hwndDlg, SW_HIDE);
             return (INT_PTR)TRUE;
         }
         break;
+    case WM_CLOSE:
+        ShowWindow(hwndDlg, SW_HIDE);
+        return (INT_PTR)TRUE;
     }
     return (INT_PTR)FALSE;
 }
