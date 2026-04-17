@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OtoPromotor - Znajdź swojego promotora</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <header class="header-container">
+        <img src="logo.png" class="logo" alt="OtoPromotor" >
+        <p class="slogan">
+            Czym się różni seminarium od proseminarium?<br>
+            Tym samym czym motor od promotora
+        </p>
+    </header>
+
+    <section class="filter-panel">
+        <div class="filter-div">
+            <form> <!-- allows to clear everything using Wyczyść button-->
+                <select name="academic-title">
+                    <option value="" selected disabled>Tytuł/stopień naukowy/zawodowy</option> <!-- selected makes it default and disabled does not allow to choose this option -->
+                    <option value="1">Licencjat</option>
+                    <option value="2">Doktor</option>
+                    <option value="3">Profesor</option>
+                </select>
+
+                <select name="thesis-type">
+                    <option value="" selected disabled>Praca dyplomowa</option>
+                    <option value="1">Inżynierska</option>
+                    <option value="2">Magisterska</option>
+                </select>
+
+                <select name="topic">
+                    <option value="" selected disabled>Obszar zainteresowań</option>
+                    <optgroup label="Algorytmy"><!-- we can't choose the label, also structures by groups -->
+                        <option value="1">Grafy</option>
+                        <option value="2">Obliczenia numeryczne</option>
+                        <option value="3">Obliczenia numeryczne na GPU</option>
+                    </optgroup>
+
+                    <optgroup label="Aplikacje i Technologie">
+                        <option value="1">Aplikacje użytkowe</option>
+                        <option value="2">Mikroserwisy</option>
+                        <option value="3">Obliczenia numeryczne na GPU</option>
+                    </optgroup>
+
+                    <optgroup label="Sztuczna inteligencja">
+                        <option value="1">Obliczenia numeryczne na GPU</option>
+                        <option value="2">Optymalizacja globalna</option>
+                        <option value="3">Sztuczne sieci neuronowe</option>
+                        <option value="3">Uogolniona sztuczna inteligencja</option>
+                    </optgroup>
+                </select>
+
+                <button type="submit">Filtruj</button>
+            
+                <button type="reset">Wyczyść</button>
+            </form>
+        </div>
+    </section>
+    
+
+    <main>
+        <div class="promotors">
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span> <!-- span does not take additional space unlike div -->
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr title="Monte Carlo Tree Search">MCTS</abbr> <!-- creates a tooltip -->
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr title="Machine Learning">ML</abbr>
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr>ML</abbr>
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr>ML</abbr>
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr>ML</abbr>
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr>ML</abbr>
+                </div>
+
+            </article>
+
+            <article class="one-promotor">
+                <figure>
+                    <img src="" alt="Zdjęcie promotora: Dr hab. inż. Maciej Grzenda">
+
+                    <figcaption>
+                        <span class="title">Dr hab. inż.</span>
+                        <h3 class="name">Maciej Grzenda</h3>
+                    </figcaption>
+                </figure>
+
+                <div>
+                    <abbr>ML</abbr>
+                </div>
+
+            </article>
+
+        </div>
+    </main>
+
+</body>
+</html>
