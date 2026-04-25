@@ -1,0 +1,69 @@
+:root { /*color definition*/
+    --navy-blue: #000080;
+    --light-gray: #f0f0f0;
+}
+
+@font-face { /*font declaration*/
+    font-family: 'Caveat';
+    src: url('caveat-regular.ttf');
+}
+
+.header-container{
+    display: flex; /*makes it "side-by-side"*/
+    justify-content: space-between;/*pushes logo to left, slogan to right*/
+    align-items: center;
+    flex-wrap: wrap; /*IMPORTANT:allows stacking when screen is small*/
+    padding: 20px 10%; /*20px for top/bottom, 10% for left/right*/
+    background-color: var(--light-gray);
+}
+
+.slogan{
+    font-family: 'Caveat';
+    color: var(--navy-blue);
+    font-size: 24px;
+    text-align: right;
+}
+
+.logo{
+    max-width: 400px;
+    height: auto;
+}
+
+.filter-panel{
+    padding: 20px 0;
+}
+
+.filter-div{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap:15px;
+}
+
+.promotors{
+    display: grid;
+    /*this creates 4 equal columns*/
+    grid-template-columns: repeat(4, 1fr);
+    gap:20px;
+    padding: 40px 0;
+}
+
+.one-promotor{
+    /*dashed, rounded border*/
+    border: 2px dashed var(--navy-blue);
+    border-radius: 20px;
+
+    /*"light" between content and border*/
+    padding: 20px;
+    text-align: center;
+    background-color: white; 
+}
+
+.lead-image {
+    float: left; /*the image must be "surrounded by the text"*/
+    width: 150px;
+    margin-right: 15px;
+    margin-bottom: 5px;
+}
+
+
