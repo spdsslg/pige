@@ -1,0 +1,77 @@
+﻿<Window x:Class="WpfTutorial.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfTutorial"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="Contact Manager" Height="800" Width="600" MinHeight="500" MinWidth="500" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BitmapImage x:Key="WomanAvatar" UriSource="/woman.png"/>
+        <BitmapImage x:Key="ManAvatar" UriSource="/man.png"/>
+
+        <DataTemplate x:Key="ContactListItemTemplate" DataType="{x:Type local:Contact}">
+            <Grid HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                    <Label Content="{Binding Name}" FontSize="20" Padding="3,0,0,0"/>
+                    <Label Content="{Binding Surname}" FontSize="20" Padding="3,0,0,0"/>
+                </StackPanel>
+
+                <Border Grid.Column="1" Width="50" Height="50" BorderBrush="Black" BorderThickness="1" Margin="3" HorizontalAlignment="Stretch">
+                    <Image Stretch="UniformToFill">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Gender}" Value="Female">
+                                        <Setter Property="Source" Value="{StaticResource WomanAvatar}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Gender}" Value="Male">
+                                        <Setter Property="Source" Value="{StaticResource ManAvatar}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <CollectionViewSource x:Key="ContactsViewSource" Source="{Binding}"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="Import" IsEnabled="False" />
+                <MenuItem Header="Export" IsEnabled="False" />
+                <Separator />
+                <MenuItem Header="Exit" Click="MenuItem_Exit" />
+            </MenuItem>
+            <MenuItem Header="Contacts">
+                <MenuItem Header="Import" Click="MenuItem_AddContact"/>
+                <MenuItem Header="Export" Click="MenuItem_ClearContacts"/>
+            </MenuItem>
+            <MenuItem Header="About" Click="MenuItem_About" />
+        </Menu>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="List">
+                <ListBox ItemsSource="{Binding Source={StaticResource ContactsViewSource}}"
+                         ItemTemplate="{StaticResource ContactListItemTemplate}" HorizontalAlignment="Stretch"/>
+            </TabItem>
+            <TabItem Header="Grid">
+                <DataGrid/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
