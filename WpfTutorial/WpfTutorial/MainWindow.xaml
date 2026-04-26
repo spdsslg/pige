@@ -43,6 +43,17 @@
         </DataTemplate>
 
         <CollectionViewSource x:Key="ContactsViewSource" Source="{Binding}"/>
+
+        <Style x:Key="ContactListItemStyle" TargetType="ListBoxItem">
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                    <Setter Property="Background" Value="#FFAFC5FF" />
+                </Trigger> 
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="#FF75A1FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -67,10 +78,13 @@
         <TabControl Grid.Row="1">
             <TabItem Header="List">
                 <ListBox ItemsSource="{Binding Source={StaticResource ContactsViewSource}}"
-                         ItemTemplate="{StaticResource ContactListItemTemplate}" HorizontalAlignment="Stretch"/>
+                         ItemTemplate="{StaticResource ContactListItemTemplate}" HorizontalAlignment="Stretch"
+                         ItemContainerStyle="{StaticResource ContactListItemStyle}"
+                         AlternationCount="2"/>
+                         
             </TabItem>
             <TabItem Header="Grid">
-                <DataGrid/>
+                <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="True" CanUserAddRows="True"/>
             </TabItem>
         </TabControl>
     </Grid>
