@@ -1,0 +1,88 @@
+﻿<Window x:Class="WpfPractice2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfPractice2"
+        mc:Ignorable="d"
+        Title="Fourier Plotter" WindowState="Maximized" ResizeMode="NoResize"  WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New"/>
+                <MenuItem Header="_Open"/>
+                <MenuItem Header="_Save"/>
+            </MenuItem>
+
+            <MenuItem Header="_Exit"/>
+
+            <MenuItem Header="_Options">
+                <MenuItem x:Name="DrawCirclesMenuItem" Header="Draw _circles" IsCheckable="True" IsChecked="True" Click="DrawCirclesMenuItem_Click"/>
+                <MenuItem x:Name="DrawLinesMenuItem" Header="Draw _lines" IsCheckable="True" IsChecked="True" Click="DrawLinesMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="85*"/>
+                <RowDefinition Height="15*"/>
+            </Grid.RowDefinitions>
+
+            <GroupBox Grid.Row="0" Grid.Column="0" Header="Plotter" Margin="4">
+                <Border BorderBrush="LightGray" BorderThickness="1" Background="White">
+                    <Canvas x:Name="DrawingCanvas" Background="White">
+                  
+                    </Canvas>
+                </Border>
+            </GroupBox>
+
+            <GroupBox Grid.Row="0" Grid.Column="1">
+                <DataGrid x:Name="CircleDataGrid"
+              AutoGenerateColumns="False"
+              CanUserAddRows="True"
+              CanUserDeleteRows="True"
+              ItemsSource="{Binding Circles}"
+              CellEditEnding="CircleDataGrid_CellEdit">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="radius"
+                                Binding="{Binding Radius, UpdateSourceTrigger=LostFocus}"
+                                Width="*" />
+
+                        <DataGridTextColumn Header="frequency"
+                                Binding="{Binding Time, UpdateSourceTrigger=LostFocus}"
+                                Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <Grid Grid.Row="1" Grid.Column="0">
+                <ProgressBar x:Name="LoadingProgressBar" Height="24" Minimum="0" Maximum="100" Value="0" VerticalAlignment="Center"/>
+            </Grid>
+
+            <GroupBox Grid.Row="1" Grid.Column="1" Header="Actions">
+                <Grid Margin="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Grid.Row="0" Content="Start" Click="StartProgress"/>
+                    <Button Grid.Row="1" Content="Pause" Click="PauseProgress"/>
+                    <Button Grid.Row="2" Content="Reset" Click="ResetProgress"/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>
